@@ -1,0 +1,23 @@
+JavaScriptで記述した囲碁ライブラリです。
+以下の機能を提供します。
+・画像を使わず、HTML5 Canvasで碁盤と碁石を描画。碁盤は5路盤から19路盤までをサポート。
+・碁盤に石を置く。
+・取られた石を消去。
+・着手禁止点判定、コウ判定。
+
+各ソースの説明:
+  migolb.js
+  囲碁ライブラリ
+  
+  jsigosumple.js
+  migolb.js使用サンプル
+  jQuery1.4.4以降を前提とする
+
+ライブラリのサンプル:
+http://mimami24i.appspot.com/html5/jsigo1
+
+License:
+  Free to use under the BSD license.
+
+Credit:
+  mimami24im@gmail.com
