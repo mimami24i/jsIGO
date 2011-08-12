@@ -129,7 +129,7 @@ mijoseki.Action_.prototype.draw = function() {
  */
 mijoseki.Action_.prototype.drawAgain = function(clrflg) {
   if (clrflg === true) {
-    this.goban.eyeArrClr();
+    this.goban.eyeinit();
   }
   this.goban.drawbanst();
 };
