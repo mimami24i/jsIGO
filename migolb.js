@@ -20,6 +20,7 @@ migolib.con = {
     ind: '#000033', // 藍
     red: '#FF0000',  // 赤
     blue: '#0000FF',  // 青
+    grn: '#1ab01a',  // 青
     b: '#000000', // 黒
     w: '#FAFAFA'  // 白
   },
@@ -88,6 +89,12 @@ migolib.Goban = function(cvs) {
    */
   this.banmarg_ = 3;
   /**
+   * 座標表示用余白(px)。マージンに追加される値
+   * @type {number}
+   * @private
+   */
+  this.coormarg_ = 17;
+  /**
    * 碁盤の目の間隔(px)
    * @type {number}
    * @private
@@ -117,6 +124,18 @@ migolib.Goban = function(cvs) {
    * @private
    */
   this.lsmoveR_ = 0;
+  /**
+   * 候補手の線の太さ(px)
+   * @type {number}
+   * @private
+   */
+  this.candLw_ = 2;
+  /**
+   * 候補手表示円の半径(px)
+   * @type {number}
+   * @private
+   */
+  this.candR_ = 0;
   /**
    * 碁盤の目のx座標配列。一番左の目がthis.xArr_[0]
    * @type {Array.<number>}
@@ -209,32 +228,41 @@ migolib.Goban = function(cvs) {
 /**
  * 何路盤かセット
  * @param {number} inrownum 何路盤か。5以上19以下の整数を設定
+ * @param {boolean=} showcoord 座標表示用余白をマージンに付加する場合はtrue
  * @return {?string} エラーメッセージ。正常の場合はnull
  */
-migolib.Goban.prototype.setrownum = function(inrownum) {
+migolib.Goban.prototype.setrownum = function(inrownum, showcoord) {
   var rownum = ~~inrownum;
   if (rownum < 5 || rownum > 19) {
     return 'rownum: ' + inrownum + ' must be between 5 and 19.';
   }
-  var sepx = ~~((this.cvwidth_ - this.banmarg_ * 2) / rownum);
+
+  var coormarg = 0; // 座標表示用余白
+  if (showcoord === true) {
+    coormarg = this.coormarg_;
+  }
+
+  var sepx = ~~((this.cvwidth_ - this.banmarg_ * 2 - coormarg) / rownum);
   if (sepx - this.banlw_ < 5) {
     return 'canvas width is too narrow.';
   }
-  var sepy = ~~((this.cvheight_ - this.banmarg_ * 2) / rownum);
+  var sepy = ~~((this.cvheight_ - this.banmarg_ * 2 - coormarg) / rownum);
   if (sepy - this.banlw_ < 5) {
-    return 'canvas heigh is too narrow.';
+    return 'canvas height is too narrow.';
   }
+
   var sep = Math.min(sepx, sepy);
   this.eyesep_ = sep;
   this.eyesephf_ = ~~(sep / 2);
   this.rownum_ = rownum;
   this.stonR_ = ~~(sep / 2) - this.stonLw_;
   this.lsmoveR_ = ~~(this.stonR_ / 2);
+  this.candR_ = ~~(this.stonR_ / 1.5);
   // 碁盤の目座標配列作成
   this.xArr_ = [];
   this.yArr_ = [];
-  this.xArr_[0] = this.banmarg_ + this.stonR_ + this.stonLw_;
-  this.yArr_[0] = this.banmarg_ + this.stonR_ + this.stonLw_;
+  this.xArr_[0] = this.banmarg_ + coormarg + this.stonR_ + this.stonLw_;
+  this.yArr_[0] = this.banmarg_ + coormarg + this.stonR_ + this.stonLw_;
   for (var i = 1; i < rownum; i++) {
     this.xArr_[i] = this.xArr_[i - 1] + sep;
     this.yArr_[i] = this.yArr_[i - 1] + sep;
@@ -655,6 +683,28 @@ migolib.Goban.prototype.drawTsStone = function(type, xidx, yidx) {
   ctx.arc(this.xArr_[xidx], this.yArr_[yidx], this.stonR_, 0, migolib.con.PI2,
       true);
   ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+};
+/**
+ * 候補手を描画
+ * @param {string} type 碁石の色。migolib.con.eyest の値をセット。
+ * @param {number} xidx 目のX軸方向index。一番左の目が0
+ * @param {number} yidx 目のY軸方向index。一番上の目が0
+ */
+migolib.Goban.prototype.drawCand = function(type, xidx, yidx) {
+  var ctx = this.context_;
+  ctx.save();
+  ctx.globalAlpha = 0.6;
+  ctx.lineWidth = this.candLw_;
+  if (type == migolib.con.eyest.b) {
+    ctx.strokeStyle  = migolib.con.col.b;
+  } else {
+    ctx.strokeStyle  = migolib.con.col.w;
+  }
+  ctx.beginPath()
+  ctx.arc(this.xArr_[xidx], this.yArr_[yidx], this.candR_, 0, migolib.con.PI2,
+      true);
   ctx.stroke();
   ctx.restore();
 };
