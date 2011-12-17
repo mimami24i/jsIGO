@@ -1,6 +1,8 @@
 /**
  * @fileoverview 囲碁ライブラリ
  * @author mimami24im@gmail.com
+ * コメントはGoogle JavaScript Style Guide
+ *    (http://cou929.nu/data/google_javascript_style_guide/)に従っている
  */
  
 /**
@@ -83,11 +85,11 @@ migolib.Goban = function(cvs) {
    */
   this.starR_ = 3;
   /**
-   * 碁盤のマージン(px)
+   * 碁盤のマージン(両側の合計が線の間隔の何倍か)
    * @type {number}
    * @private
    */
-  this.banmarg_ = 3;
+  this.banmarg_ = 1.4;
   /**
    * 座標表示用余白(px)。マージンに追加される値
    * @type {number}
@@ -95,13 +97,13 @@ migolib.Goban = function(cvs) {
    */
   this.coormarg_ = 17;
   /**
-   * 碁盤の目の間隔(px)
+   * 碁盤の目の間隔(px)。not integer
    * @type {number}
    * @private
    */
   this.eyesep_ = 0;
   /**
-   * 碁盤の目の間隔/2(px)
+   * 碁盤の目の間隔/2(px)。not integer
    * @type {number}
    * @private
    */
@@ -173,7 +175,8 @@ migolib.Goban = function(cvs) {
    * this.centpos[0]: x座標(px), this.centpos[1]: y座標(px)
    * @type {Array.<number>}
    */
-  this.centpos = [~~(this.cvwidth_ / 2), ~~(this.cvheight_ / 2)];
+  this.centpos = [Math.round(this.cvwidth_ / 2),
+      Math.round(this.cvheight_ / 2)];
   /**
    * 盤面中央に表示する文字列。10文字以下とする
    * @type {?string}
@@ -184,7 +187,7 @@ migolib.Goban = function(cvs) {
    * @type {number}
    * @private
    */
-  this.dispfontsz_ = (this.cvwidth_) ? ~~(this.cvwidth_ / 10) : 10;
+  this.dispfontsz_ = (this.cvwidth_) ? Math.round(this.cvwidth_ / 10) : 10;
   /**
    * 盤面中央に表示する文字列のフォント
    * @type {string}
@@ -195,6 +198,7 @@ migolib.Goban = function(cvs) {
   /**
    * 盤面中央に表示する文字列の色
    * @type {string}
+   * @private
    */
   this.dispcol_ = migolib.con.col.ind;
 
@@ -242,49 +246,57 @@ migolib.Goban.prototype.setrownum = function(inrownum, showcoord) {
     coormarg = this.coormarg_;
   }
 
-  var sepx = ~~((this.cvwidth_ - this.banmarg_ * 2 - coormarg) / rownum);
+  var sepx = (this.cvwidth_ - coormarg) / (rownum - 1 + this.banmarg_);
   if (sepx - this.banlw_ < 5) {
     return 'canvas width is too narrow.';
   }
-  var sepy = ~~((this.cvheight_ - this.banmarg_ * 2 - coormarg) / rownum);
+  var sepy = (this.cvheight_ - coormarg) / (rownum - 1 + this.banmarg_);
   if (sepy - this.banlw_ < 5) {
     return 'canvas height is too narrow.';
   }
 
   var sep = Math.min(sepx, sepy);
   this.eyesep_ = sep;
-  this.eyesephf_ = ~~(sep / 2);
+  this.eyesephf_ = sep / 2;
   this.rownum_ = rownum;
-  this.stonR_ = ~~(sep / 2) - this.stonLw_;
-  this.lsmoveR_ = ~~(this.stonR_ / 2);
-  this.candR_ = ~~(this.stonR_ / 1.5);
+  this.stonR_ = Math.round(this.eyesephf_ - this.stonLw_);
+  this.lsmoveR_ = Math.round(this.stonR_ / 2);
+  this.candR_ = Math.round(this.stonR_ / 1.5);
   // 碁盤の目座標配列作成
+  var banmarg = Math.round(sep * this.banmarg_ / 2);
   this.xArr_ = [];
   this.yArr_ = [];
-  this.xArr_[0] = this.banmarg_ + coormarg + this.stonR_ + this.stonLw_;
-  this.yArr_[0] = this.banmarg_ + coormarg + this.stonR_ + this.stonLw_;
+  this.xArr_[0] = banmarg + coormarg;
+  this.yArr_[0] = banmarg + coormarg;
   for (var i = 1; i < rownum; i++) {
+    // NOTE:丸め誤差が積み上がることを考慮し、ここではroundしない
     this.xArr_[i] = this.xArr_[i - 1] + sep;
     this.yArr_[i] = this.yArr_[i - 1] + sep;
+  }
+  // 座標の値を四捨五入
+  for (var i = 0; i < this.xArr_.length; i++) {
+    this.xArr_[i] = Math.round(this.xArr_[i]);
+  }
+  for (var i = 0; i < this.yArr_.length; i++) {
+    this.yArr_[i] = Math.round(this.yArr_[i]);
   }
   // 星座標配列作成
   this.stArr_ = [];
   var xalen = this.xArr_.length, yalen = this.yArr_.length;
   if (xalen % 2 == 1 && yalen % 2 == 1) {
-    var arr = [];
-    var ixsep = ~~(xalen / 4), iysep = ~~(yalen / 4);
-    if (ixsep >= 3 && iysep >= 3) {
+    if (xalen / 4 >= 3 && yalen / 4 >= 3) {
       var ixArr = [3, ~~(xalen / 2), xalen - 4];
       var iyArr = [3, ~~(yalen / 2), yalen - 4];
       for (var ix = 0; ix < ixArr.length; ix++) {
         for (var iy = 0; iy < iyArr.length; iy++) {
-          arr = [];
+          var arr = [];
           arr[0] = this.xArr_[ixArr[ix]];
           arr[1] = this.yArr_[ixArr[iy]];
           this.stArr_.push(arr);
         }
       }
     } else {
+      var arr = [];
       arr[0] = this.xArr_[~~(xalen / 2)];
       arr[1] = this.yArr_[~~(yalen / 2)];
       this.stArr_.push(arr);
@@ -327,6 +339,8 @@ migolib.Goban.prototype.getEyeIdx = function(cx, cy) {
   var xl = this.xArr_[xlen - 1];
   var y0 = this.yArr_[0];
   var yl = this.yArr_[ylen - 1];
+  //NOTE: 実際の線間隔はthis.eyesep_では無いが、誤差はせいぜい1pxなので
+  //    厳密なチェックはしない
   if (cx <= x0) {
     xidx = 0;
   } else if (cx > xl) {
