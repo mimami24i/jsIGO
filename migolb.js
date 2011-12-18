@@ -269,16 +269,8 @@ migolib.Goban.prototype.setrownum = function(inrownum, showcoord) {
   this.xArr_[0] = banmarg + coormarg;
   this.yArr_[0] = banmarg + coormarg;
   for (var i = 1; i < rownum; i++) {
-    // NOTE:丸め誤差が積み上がることを考慮し、ここではroundしない
-    this.xArr_[i] = this.xArr_[i - 1] + sep;
-    this.yArr_[i] = this.yArr_[i - 1] + sep;
-  }
-  // 座標の値を四捨五入
-  for (var i = 0; i < this.xArr_.length; i++) {
-    this.xArr_[i] = Math.round(this.xArr_[i]);
-  }
-  for (var i = 0; i < this.yArr_.length; i++) {
-    this.yArr_[i] = Math.round(this.yArr_[i]);
+    this.xArr_[i] = Math.round(this.xArr_[0] + sep * i);
+    this.yArr_[i] = Math.round(this.yArr_[0] + sep * i);
   }
   // 星座標配列作成
   this.stArr_ = [];
